@@ -37,7 +37,6 @@ public class User {
     @NotBlank(message = "Required Field")
     private String email;
 
-    @Getter(AccessLevel.NONE) // Excludes the getter for password
     @Size(min = 8, message = "Password must be at least 8 characters long")
     @NotBlank(message = "Required Field")
     @Column(nullable = false)
