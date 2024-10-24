@@ -6,7 +6,6 @@ import com.mycalories.CaloriesTracker.model.UserProfile;
 import com.mycalories.CaloriesTracker.repository.UserProfileRepository;
 import com.mycalories.CaloriesTracker.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.security.Principal;
