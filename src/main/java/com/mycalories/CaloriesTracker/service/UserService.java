@@ -4,17 +4,18 @@ import com.mycalories.CaloriesTracker.dto.UserDto;
 import com.mycalories.CaloriesTracker.exception.UserAlreadyExistsException;
 import com.mycalories.CaloriesTracker.model.User;
 import com.mycalories.CaloriesTracker.repository.UserRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
-
-    private static final Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -22,46 +23,50 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private CustomUserDetailsImpl customUserDetails;
 
+    // Handle user registration
+    public User registerUser(UserDto userDto) {
+        Optional<User> isUserEmailExist = userRepository.findByEmail(userDto.getEmail());
+        Optional<User> isUserPhoneNumberExist = userRepository.findByPhoneNumber(userDto.getPhoneNumber());
 
-//    public User registerUser(UserDto userDto) {
-//
-//        User user = convertToUserEntity(userDto);
+        if (isUserEmailExist.isPresent()) {
+            throw new UserAlreadyExistsException("Email already exists");
+        }
 
-//        logger.info("Registering user with username: {}, email: {}", user.getUsername(), user.getEmail());
-//
-////        // Check if username already exists
-////        if (userRepository.existsByUsername(user.getUsername())) {
-////            throw new UserAlreadyExistsException("Username already taken");
-////        }
-////
-////        // Check if email already exists
-////        if (userRepository.existsByEmail(user.getEmail())) {
-////            throw new UserAlreadyExistsException("Email already in use");
-////        }
-////
-////        // Check if phone number is provided and already exists
-////        if (user.getPhoneNumber() != null && userRepository.existsByPhoneNumber(user.getPhoneNumber())) {
-////            throw new UserAlreadyExistsException("Phone number already in use");
-////        }
-////
-////        String encodedPassword = passwordEncoder.encode(user.getPassword());
-////        user.setPassword(encodedPassword);
-////
-//            return userRepository.save(user);
-//    }
+        if (isUserPhoneNumberExist.isPresent()) {
+            throw new UserAlreadyExistsException("Number already exists");
+        }
 
-    private User convertToUserEntity(UserDto userDto) {
-        User user = new User();
-        user.setFirstName(userDto.getFirstName());
-        user.setMiddleName(userDto.getMiddleName());
-        user.setLastName(userDto.getLastName());
-        user.setPhoneNumber(userDto.getPhoneNumber());
-        user.setEmail(userDto.getEmail());
-        user.setPassword(userDto.getPassword()); // Remember to hash PW
-        return user;
+        User newUser = new User();
+        newUser.setPassword(passwordEncoder.encode(userDto.getPassword()));
+        newUser.setEmail(userDto.getEmail());
+        newUser.setFirstName(userDto.getFirstName());
+        newUser.setMiddleName(userDto.getMiddleName());
+        newUser.setLastName(userDto.getLastName());
+
+        if (userDto.getPhoneNumber() != null && !userDto.getPhoneNumber().isEmpty()) {
+            newUser.setPhoneNumber(userDto.getPhoneNumber());
+        }
+
+        return userRepository.save(newUser);
     }
 
+    // Handle user authentication
+    private Authentication authenticate(String email, String password) {
+        UserDetails userDetails = customUserDetails.loadUserByUsername(email);
+        if (userDetails == null) {
+            throw new BadCredentialsException("invalid email");
+        }
+        if (!passwordEncoder.matches(password, userDetails.getPassword())) {
+            throw new BadCredentialsException("invalid username");
+        }
+        return new UsernamePasswordAuthenticationToken(userDetails, null
+                , userDetails.getAuthorities());
+    }
 
-
+    public Authentication getAuthenticate(String email, String password) {
+        return this.authenticate(email, password);
+    }
 }

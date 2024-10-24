@@ -31,7 +31,7 @@ public class SecurityConfig {
         http.sessionManagement(Management -> Management.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(Authorize -> Authorize.requestMatchers("/api/user/register", "/api/user/login")
                         .permitAll()
-                        .requestMatchers("/api/**").authenticated()
+                        .requestMatchers("/api/profile/**").authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(new JwtTokenValidator(), BasicAuthenticationFilter.class)
                 .csrf(AbstractHttpConfigurer::disable)

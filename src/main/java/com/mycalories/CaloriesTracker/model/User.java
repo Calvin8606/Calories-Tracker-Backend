@@ -1,5 +1,6 @@
 package com.mycalories.CaloriesTracker.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -39,4 +40,8 @@ public class User {
     @NotBlank(message = "Password is required")
     @Column(nullable = false, name = "password")
     private String password;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonManagedReference
+    private UserProfile userProfile;
 }
