@@ -7,6 +7,13 @@ import lombok.Data;
 
 @Data
 public class UserProfileDto {
+
+    @NotBlank
+    private String firstName;
+
+    @NotBlank
+    private String lastName;
+
     @NotBlank
     private String goal;
 
@@ -14,19 +21,19 @@ public class UserProfileDto {
     private String gender;
 
     @NotNull
-    private int heightFeet;
+    private Integer heightFeet;
 
     @NotNull
-    private int heightInches;
+    private Integer heightInches;
 
     @NotNull
-    private double weightLbs;
+    private Double weightLbs;
 
     @NotBlank
     private String activityLevel;
 
     // New fields for BMR calculations
-    private double maintenanceCalories;
-    private double gainCalories;
-    private double lossCalories;
+    private Double maintenanceCalories;
+    private Double gainCalories;
+    private Double lossCalories;
 }

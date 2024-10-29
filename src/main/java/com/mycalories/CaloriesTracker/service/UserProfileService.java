@@ -21,37 +21,40 @@ public class UserProfileService {
     private UserRepository userRepository;
 
     public UserProfile createOrUpdateUserProfile(UserProfileDto profileDto, Principal principal) {
-        // Initialize User
+        // Find user by email
         Optional<User> optionalUser = userRepository.findByEmail(principal.getName());
 
         if (optionalUser.isEmpty()) {
             throw new RuntimeException("User not found");
         }
 
-
-        // Set up or update the user profile
         User authUser = optionalUser.get();
-        UserProfile userProfile;
-        if (authUser.getUserProfile() != null) {
-            // Update existing UserProfile
-            userProfile = authUser.getUserProfile();
-        } else {
-            // Create new UserProfile
-            userProfile = new UserProfile();
-            userProfile.setUser(authUser); // Set user reference
-        }
+        UserProfile userProfile = authUser.getUserProfile() != null ? authUser.getUserProfile() : new UserProfile();
 
-        double bmr = calculateBMR(userProfile);
-        userProfile.setMaintenanceCalories(calculateMaintenanceCalories(bmr, userProfile.getActivityLevel()));
-        userProfile.setGainCalories(userProfile.getMaintenanceCalories() + 500);
-        userProfile.setLossCalories(userProfile.getMaintenanceCalories() - 500);
-
+        // Set up or update user profile details
+        userProfile.setFirstName(authUser.getFirstName());
+        userProfile.setLastName(authUser.getLastName());
         userProfile.setGoal(profileDto.getGoal());
         userProfile.setGender(profileDto.getGender());
         userProfile.setHeightFeet(profileDto.getHeightFeet());
         userProfile.setHeightInches(profileDto.getHeightInches());
         userProfile.setWeightLbs(profileDto.getWeightLbs());
         userProfile.setActivityLevel(profileDto.getActivityLevel());
+
+        // Calculate BMR and calorie goals
+        double bmr = calculateBMR(userProfile);
+        double maintenanceCalories = Math.round(bmr * getActivityMultiplier(profileDto.getActivityLevel()));
+        double gainCalories = Math.round(maintenanceCalories + 500);
+        double lossCalories = Math.round(maintenanceCalories - 500);
+
+        userProfile.setMaintenanceCalories(maintenanceCalories);
+        userProfile.setGainCalories(gainCalories);
+        userProfile.setLossCalories(lossCalories);
+
+        // Link user to user profile if new
+        if (userProfile.getUser() == null) {
+            userProfile.setUser(authUser);
+        }
 
         // Save user profile
         return userProfileRepository.save(userProfile);
@@ -76,11 +79,6 @@ public class UserProfileService {
         } else {
             throw new IllegalArgumentException("Invalid gender");
         }
-    }
-
-    private double calculateMaintenanceCalories(double bmr, String activityLevel) {
-        double multiplier = getActivityMultiplier(activityLevel);
-        return bmr * multiplier;
     }
 
     private double getActivityMultiplier(String activityLevel) {

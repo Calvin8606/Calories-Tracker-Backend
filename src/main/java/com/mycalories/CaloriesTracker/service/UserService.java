@@ -69,4 +69,12 @@ public class UserService {
     public Authentication getAuthenticate(String email, String password) {
         return this.authenticate(email, password);
     }
+
+    public User findByEmail(String email) {
+        Optional<User> findUser = userRepository.findByEmail(email);
+        if (findUser.isEmpty()) {
+            throw new RuntimeException("User not found");
+        }
+        return findUser.get();
+    }
 }

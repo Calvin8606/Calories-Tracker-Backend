@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
 import java.security.Principal;
 
 @RestController
@@ -31,7 +32,7 @@ public class UserProfileController {
     }
 
     // Get the user profile
-    @GetMapping
+    @GetMapping("/get")
     public ResponseEntity<UserProfile> getUserProfile(Principal principal) {
         try {
             UserProfile userProfile = userProfileService.getUserProfile(principal);
