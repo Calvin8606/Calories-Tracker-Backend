@@ -77,4 +77,47 @@ public class UserService {
         }
         return findUser.get();
     }
+
+    public void updatePhoneNumber(String email, String phoneNumber) {
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (phoneNumber != null && !phoneNumber.isEmpty()) {
+                user.setPhoneNumber(phoneNumber);
+                userRepository.save(user);
+                System.out.println("Phone number updated successfully for user: " + email);
+            } else {
+                throw new IllegalArgumentException("Phone number cannot be empty.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error updating phone number for user: " + email);
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public void updatePassword(String email, String newPassword) {
+        try {
+            User user = userRepository.findByEmail(email)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            if (newPassword == null || newPassword.isEmpty()) {
+                throw new IllegalArgumentException("New password cannot be empty.");
+            }
+
+            if (newPassword.length() < 8) {
+                throw new IllegalArgumentException("New password must be at least 8 characters long.");
+            }
+
+            user.setPassword(passwordEncoder.encode(newPassword));
+            userRepository.save(user);
+
+            System.out.println("Password updated successfully for user: " + email);
+        } catch (Exception e) {
+            System.err.println("Error updating password for user: " + email);
+            e.printStackTrace();
+            throw e;
+        }
+    }
 }

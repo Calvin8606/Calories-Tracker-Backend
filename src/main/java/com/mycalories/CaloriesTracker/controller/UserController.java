@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
+import java.security.Principal;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -29,8 +32,6 @@ public class UserController {
         try {
             User savedUser = userService.registerUser(userDto);
 
-
-            // Create a response DTO (if needed)
             UserDto responseDto = new UserDto();
             responseDto.setEmail(savedUser.getEmail());
             responseDto.setFirstName(savedUser.getFirstName());
@@ -72,5 +73,46 @@ public class UserController {
         authResponse.setProfileComplete(isProfileComplete);
 
         return new ResponseEntity<>(authResponse, HttpStatus.OK);
+    }
+
+    @GetMapping("/details")
+    public ResponseEntity<UserDto> getUserDetails(Principal principal) {
+        try {
+            User user = userService.findByEmail(principal.getName());
+            UserDto userDto = new UserDto();
+            userDto.setFirstName(user.getFirstName());
+            userDto.setLastName(user.getLastName());
+            userDto.setEmail(user.getEmail());
+            userDto.setPhoneNumber(user.getPhoneNumber());
+            return new ResponseEntity<>(userDto, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update-phone")
+    public ResponseEntity<String> updatePhoneNumber(@RequestBody Map<String, String> request, Principal principal) {
+        try {
+            String phoneNumber = request.get("phoneNumber");
+            userService.updatePhoneNumber(principal.getName(), phoneNumber);
+            return new ResponseEntity<>("Phone number updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Phone number update failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PutMapping("/update-password")
+    public ResponseEntity<String> updatePassword(@RequestBody Map<String, String> request, Principal principal) {
+        try {
+            String newPassword = request.get("password");
+            if (newPassword == null || newPassword.isEmpty()) {
+                return new ResponseEntity<>("New password cannot be empty", HttpStatus.BAD_REQUEST);
+            }
+            userService.updatePassword(principal.getName(), newPassword);
+            return new ResponseEntity<>("Password updated successfully", HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace(); // Log stack trace for debugging
+            return new ResponseEntity<>("Password update failed", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
