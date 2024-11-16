@@ -25,6 +25,7 @@ The back end of **MyCaloriesTracker** is a Spring Boot application providing API
 - **Spring Security** for authentication and authorization
 - **JWT** for secure, stateless authentication
 - **MySQL** for database (configurable)
+- **NutrinixAPI** Link: https://www.nutritionix.com/business/api
 
 ## Setup Instructions
 
